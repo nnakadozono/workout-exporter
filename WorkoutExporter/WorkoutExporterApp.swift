@@ -25,14 +25,20 @@ struct WorkoutExporterApp: App {
     }
     
     func authorizeHealthKit() {
-        guard let distanceType = HKObjectType.quantityType(forIdentifier: .distanceSwimming),
-              let caloriesType = HKObjectType.quantityType(forIdentifier: .activeEnergyBurned) else {
+        guard let distanceSwimmingType = HKObjectType.quantityType(forIdentifier: .distanceSwimming),
+              let swimmingStrokeCountType = HKObjectType.quantityType(forIdentifier: .swimmingStrokeCount),
+              let basalEnergyBurnedType = HKObjectType.quantityType(forIdentifier: .basalEnergyBurned),
+              let activeEnergyBurnedType = HKObjectType.quantityType(forIdentifier: .activeEnergyBurned),
+              let heartRateType = HKObjectType.quantityType(forIdentifier: .heartRate) else {
             return
         }
-        
+
         let healthKitTypeToRead: Set<HKObjectType> = [
-            distanceType,
-            caloriesType,
+            distanceSwimmingType,
+            swimmingStrokeCountType,
+            basalEnergyBurnedType,
+            activeEnergyBurnedType,
+            heartRateType,
             HKObjectType.workoutType()
         ]
         
@@ -56,7 +62,9 @@ class WorkoutManager: ObservableObject {
         let workoutPredicate = HKQuery.predicateForWorkouts(with: .swimming)
         let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
         
-        let query = HKSampleQuery(sampleType: .workoutType(), predicate: workoutPredicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) {
+//        let query = HKSampleQuery(sampleType: .workoutType(), predicate: workoutPredicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) {
+        let query = HKSampleQuery(sampleType: .workoutType(), predicate: workoutPredicate, limit: 3, sortDescriptors: [sortDescriptor]) { // Debug
+
             (query, samples, error) in
             guard let workouts = samples as? [HKWorkout], error == nil else {
                 // error handling
@@ -64,33 +72,87 @@ class WorkoutManager: ObservableObject {
                 completion("")
                 return
             }
-            
-            for workout in workouts.prefix(3) {
-                print("Workout: \(workout), WorkoutEvents: \(String(describing: workout.workoutEvents)),　calories: \(workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0) kcal, distance: \(workout.totalDistance?.doubleValue(for: .meter()) ?? 0) m")
+
+             guard let distanceSwimmingType = HKObjectType.quantityType(forIdentifier: .distanceSwimming),
+                   let swimmingStrokeCountType = HKObjectType.quantityType(forIdentifier: .swimmingStrokeCount),
+                   let basalEnergyBurnedType = HKObjectType.quantityType(forIdentifier: .basalEnergyBurned),
+                   let activeEnergyBurnedType = HKObjectType.quantityType(forIdentifier: .activeEnergyBurned),
+                   let heartRateType = HKObjectType.quantityType(forIdentifier: .heartRate) else {
+                 fatalError("QuantityType(s) are unavailable.")
+             }
+
+            for workout in workouts.prefix(1) {
+                print("\(workout.workoutActivityType), \(workout.duration),                       \(workout.sourceRevision), \(String(describing: workout.device)), \(String(describing: workout.device?.name)), \(String(describing: workout.device?.hardwareVersion)), \(workout.startDate), \(workout.endDate), \n\n \(String(describing: workout.metadata)), \n\n \(workout.allStatistics)")
+                print("\n\n")
+                print("\(String(describing: workout.statistics(for: distanceSwimmingType)?.sumQuantity()?.doubleValue(for: .meter()) ?? 0))")
+                print("\(String(describing: workout.statistics(for: swimmingStrokeCountType)?.sumQuantity()?.doubleValue(for: .count()) ?? 0))")
+                print("\(String(describing: workout.statistics(for: basalEnergyBurnedType)?.sumQuantity()?.doubleValue(for: .kilocalorie()) ?? 0))")
+                print("\(String(describing: workout.statistics(for: activeEnergyBurnedType)?.sumQuantity()?.doubleValue(for: .kilocalorie()) ?? 0))")
+                print("\(String(describing: workout.statistics(for: heartRateType)?.averageQuantity()?.doubleValue(for: HKUnit(from: "count/min")) ?? 0))")
+                print("\(String(describing: workout.statistics(for: heartRateType)?.minimumQuantity()?.doubleValue(for: HKUnit(from: "count/min")) ?? 0))")
+                print("\(String(describing: workout.statistics(for: heartRateType)?.maximumQuantity()?.doubleValue(for: HKUnit(from: "count/min")) ?? 0))")
             }
             
             let jsonData = self.convertToJsonData(workouts)
             completion(jsonData)
+//            completion("")
         }
         
         self.healthStore.execute(query)
     }
     
     private func convertToJsonData(_ workouts: [HKWorkout]) -> String {
-        var jsonArray = [Any]()
-        
-        for workout in workouts.prefix(3) {
-            var workoutData = [String: Any]()
-            //workoutData["startTime"] = workout.startDate
-            workoutData["duration"] = workout.duration
-            workoutData["caloriesBurned"] = workout.totalEnergyBurned?.doubleValue(for: .kilocalorie())
-            workoutData["distance"] = workout.totalDistance?.doubleValue(for: .meter())
-            
-            jsonArray.append(workoutData)
+        var jsonObject = [String: Any]()
+
+        guard let distanceSwimmingType = HKObjectType.quantityType(forIdentifier: .distanceSwimming),
+              let swimmingStrokeCountType = HKObjectType.quantityType(forIdentifier: .swimmingStrokeCount),
+              let basalEnergyBurnedType = HKObjectType.quantityType(forIdentifier: .basalEnergyBurned),
+              let activeEnergyBurnedType = HKObjectType.quantityType(forIdentifier: .activeEnergyBurned),
+              let heartRateType = HKObjectType.quantityType(forIdentifier: .heartRate) else {
+            fatalError("QuantityType(s) are unavailable.")
         }
         
+        let dateFormatter = ISO8601DateFormatter()
+        dateFormatter.timeZone = TimeZone.current
+        
+        var summaryArray = [Any]()
+        for workout in workouts.prefix(3) {
+            var workoutData = [String: Any]()
+            
+            workoutData["workoutActivityType"] = workout.workoutActivityType.rawValue
+            workoutData["duration"] = workout.duration
+            // workoutData["sourceRevision"] = workout.sourceRevision
+            // workoutData["device"] = workout.device
+            workoutData["startDate"] = dateFormatter.string(from: workout.startDate)
+            workoutData["endDate"] = dateFormatter.string(from: workout.endDate)
+            
+            workoutData["DistanceSwimming_sum"] = workout.statistics(for: distanceSwimmingType)?.sumQuantity()?.doubleValue(for: .meter()) ?? 0
+            workoutData["SwimmingStrokeCount_sum"] = workout.statistics(for: swimmingStrokeCountType)?.sumQuantity()?.doubleValue(for: .count()) ?? 0
+            workoutData["BasalEnergyBurned_sum"] = workout.statistics(for: basalEnergyBurnedType)?.sumQuantity()?.doubleValue(for: .kilocalorie()) ?? 0
+            workoutData["ActiveEnergyBurned_sum"] = workout.statistics(for: activeEnergyBurnedType)?.sumQuantity()?.doubleValue(for: .kilocalorie()) ?? 0
+            workoutData["HeartRate_average"] = workout.statistics(for: heartRateType)?.averageQuantity()?.doubleValue(for: HKUnit(from: "count/min")) ?? 0
+            workoutData["HeartRate_minimum"] = workout.statistics(for: heartRateType)?.minimumQuantity()?.doubleValue(for: HKUnit(from: "count/min")) ?? 0
+            workoutData["HeartRate_maximum"] = workout.statistics(for: heartRateType)?.maximumQuantity()?.doubleValue(for: HKUnit(from: "count/min")) ?? 0
+
+            if let metadata = workout.metadata {
+                for (key, value) in metadata {
+                    if let dateValue = value as? Date {
+                        workoutData[key] = dateFormatter.string(from: dateValue)
+                    } else if let numberValue = value as? NSNumber {
+                        workoutData[key] = numberValue
+                    } else if let stringValue = value as? String {
+                        workoutData[key] = stringValue
+                    } else {
+                        print("Unsupported type for key \(key): \(type(of: value))")
+                    }
+                }
+            }
+            summaryArray.append(workoutData)
+        }
+        jsonObject["workoutSummary"] = summaryArray
+        
         do {
-            let data = try JSONSerialization.data(withJSONObject: jsonArray, options:[JSONSerialization.WritingOptions.prettyPrinted])
+            let data = try JSONSerialization.data(withJSONObject: jsonObject, options:[JSONSerialization.WritingOptions.prettyPrinted])
             return String(data: data, encoding: .utf8) ?? ""
         } catch {
             print("Failed to convert to JSON")

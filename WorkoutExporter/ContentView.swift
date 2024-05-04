@@ -28,6 +28,9 @@ struct ContentView: View {
             .clipShape(RoundedRectangle(cornerRadius: 10))
         }
         .padding()
+        .onAppear { // Debug
+            workoutManager.exportAndShareWorkout()
+        }
     }
 }
 
