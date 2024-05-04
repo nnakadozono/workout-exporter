@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct ContentView: View {
+    @EnvironmentObject var workoutManager: WorkoutManager
+    
     var body: some View {
         VStack {
             Image(systemName: "globe")
@@ -16,9 +18,13 @@ struct ContentView: View {
             Text("Hello, world!")
         }
         .padding()
+        .onAppear {
+            workoutManager.fetchSwimmingWorkouts()
+        }
     }
 }
 
 #Preview {
     ContentView()
 }
+

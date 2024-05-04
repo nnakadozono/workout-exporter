@@ -14,6 +14,8 @@
 		EB38CF312BE5AF600001F3F0 /* WorkoutExporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB38CF302BE5AF600001F3F0 /* WorkoutExporterTests.swift */; };
 		EB38CF3B2BE5AF600001F3F0 /* WorkoutExporterUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB38CF3A2BE5AF600001F3F0 /* WorkoutExporterUITests.swift */; };
 		EB38CF3D2BE5AF600001F3F0 /* WorkoutExporterUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB38CF3C2BE5AF600001F3F0 /* WorkoutExporterUITestsLaunchTests.swift */; };
+		EB38CF4C2BE5B9F20001F3F0 /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB38CF4B2BE5B9F20001F3F0 /* HealthKit.framework */; };
+		EB38CF4F2BE5BBFE0001F3F0 /* HealthKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB38CF4D2BE5B9FB0001F3F0 /* HealthKitUI.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,6 +46,9 @@
 		EB38CF362BE5AF600001F3F0 /* WorkoutExporterUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WorkoutExporterUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		EB38CF3A2BE5AF600001F3F0 /* WorkoutExporterUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutExporterUITests.swift; sourceTree = "<group>"; };
 		EB38CF3C2BE5AF600001F3F0 /* WorkoutExporterUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutExporterUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		EB38CF492BE5B1B20001F3F0 /* WorkoutExporter.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WorkoutExporter.entitlements; sourceTree = "<group>"; };
+		EB38CF4B2BE5B9F20001F3F0 /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
+		EB38CF4D2BE5B9FB0001F3F0 /* HealthKitUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKitUI.framework; path = System/Library/Frameworks/HealthKitUI.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -51,6 +56,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EB38CF4C2BE5B9F20001F3F0 /* HealthKit.framework in Frameworks */,
+				EB38CF4F2BE5BBFE0001F3F0 /* HealthKitUI.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +85,7 @@
 				EB38CF2F2BE5AF600001F3F0 /* WorkoutExporterTests */,
 				EB38CF392BE5AF600001F3F0 /* WorkoutExporterUITests */,
 				EB38CF1D2BE5AF5E0001F3F0 /* Products */,
+				EB38CF4A2BE5B9F20001F3F0 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -94,6 +102,7 @@
 		EB38CF1E2BE5AF5E0001F3F0 /* WorkoutExporter */ = {
 			isa = PBXGroup;
 			children = (
+				EB38CF492BE5B1B20001F3F0 /* WorkoutExporter.entitlements */,
 				EB38CF1F2BE5AF5E0001F3F0 /* WorkoutExporterApp.swift */,
 				EB38CF212BE5AF5E0001F3F0 /* ContentView.swift */,
 				EB38CF232BE5AF600001F3F0 /* Assets.xcassets */,
@@ -125,6 +134,15 @@
 				EB38CF3C2BE5AF600001F3F0 /* WorkoutExporterUITestsLaunchTests.swift */,
 			);
 			path = WorkoutExporterUITests;
+			sourceTree = "<group>";
+		};
+		EB38CF4A2BE5B9F20001F3F0 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				EB38CF4D2BE5B9FB0001F3F0 /* HealthKitUI.framework */,
+				EB38CF4B2BE5B9F20001F3F0 /* HealthKit.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -419,11 +437,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = WorkoutExporter/WorkoutExporter.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"WorkoutExporter/Preview Content\"";
+				DEVELOPMENT_TEAM = Q5EPC6VTHL;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Please allow the use of healthcare data to export workout records.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -447,11 +468,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = WorkoutExporter/WorkoutExporter.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"WorkoutExporter/Preview Content\"";
+				DEVELOPMENT_TEAM = Q5EPC6VTHL;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Please allow the use of healthcare data to export workout records.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
