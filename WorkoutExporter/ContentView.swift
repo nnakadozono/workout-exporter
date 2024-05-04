@@ -12,16 +12,19 @@ struct ContentView: View {
     
     var body: some View {
         VStack {
-            Image(systemName: "globe")
+            Image(systemName: "figure.run.circle.fill")
+                .foregroundColor(.green)
                 .imageScale(.large)
+                .dynamicTypeSize(.xxxLarge)
                 .foregroundStyle(.tint)
-            Text("Hello, world!")
+            Text("Born to Run")
+                .padding(.bottom)
             Button("Export Workouts") {
                 workoutManager.exportAndShareWorkout()
             }
             .padding()
-            .background(Color.blue)
-            .foregroundColor(.white)
+            .background(Color.green)
+            .foregroundColor(.primary)
             .clipShape(RoundedRectangle(cornerRadius: 10))
         }
         .padding()

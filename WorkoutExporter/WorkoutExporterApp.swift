@@ -66,7 +66,7 @@ class WorkoutManager: ObservableObject {
             }
             
             for workout in workouts.prefix(3) {
-                print("Workout: \(workout), calories: \(workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0) kcal, distance: \(workout.totalDistance?.doubleValue(for: .meter()) ?? 0) m")
+                print("Workout: \(workout), WorkoutEvents: \(String(describing: workout.workoutEvents)),　calories: \(workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0) kcal, distance: \(workout.totalDistance?.doubleValue(for: .meter()) ?? 0) m")
             }
             
             let jsonData = self.convertToJsonData(workouts)
