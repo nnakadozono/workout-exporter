@@ -16,6 +16,7 @@
 		EB38CF3D2BE5AF600001F3F0 /* WorkoutExporterUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB38CF3C2BE5AF600001F3F0 /* WorkoutExporterUITestsLaunchTests.swift */; };
 		EB38CF4C2BE5B9F20001F3F0 /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB38CF4B2BE5B9F20001F3F0 /* HealthKit.framework */; };
 		EB38CF4F2BE5BBFE0001F3F0 /* HealthKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB38CF4D2BE5B9FB0001F3F0 /* HealthKitUI.framework */; };
+		EBA9C2AC2BE5FB1900CF60B4 /* Zip in Frameworks */ = {isa = PBXBuildFile; productRef = EBA9C2AB2BE5FB1900CF60B4 /* Zip */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,6 +50,7 @@
 		EB38CF492BE5B1B20001F3F0 /* WorkoutExporter.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WorkoutExporter.entitlements; sourceTree = "<group>"; };
 		EB38CF4B2BE5B9F20001F3F0 /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
 		EB38CF4D2BE5B9FB0001F3F0 /* HealthKitUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKitUI.framework; path = System/Library/Frameworks/HealthKitUI.framework; sourceTree = SDKROOT; };
+		EBA9C2AD2BE6081200CF60B4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,6 +58,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EBA9C2AC2BE5FB1900CF60B4 /* Zip in Frameworks */,
 				EB38CF4C2BE5B9F20001F3F0 /* HealthKit.framework in Frameworks */,
 				EB38CF4F2BE5BBFE0001F3F0 /* HealthKitUI.framework in Frameworks */,
 			);
@@ -102,6 +105,7 @@
 		EB38CF1E2BE5AF5E0001F3F0 /* WorkoutExporter */ = {
 			isa = PBXGroup;
 			children = (
+				EBA9C2AD2BE6081200CF60B4 /* Info.plist */,
 				EB38CF492BE5B1B20001F3F0 /* WorkoutExporter.entitlements */,
 				EB38CF1F2BE5AF5E0001F3F0 /* WorkoutExporterApp.swift */,
 				EB38CF212BE5AF5E0001F3F0 /* ContentView.swift */,
@@ -161,6 +165,9 @@
 			dependencies = (
 			);
 			name = WorkoutExporter;
+			packageProductDependencies = (
+				EBA9C2AB2BE5FB1900CF60B4 /* Zip */,
+			);
 			productName = WorkoutExporter;
 			productReference = EB38CF1C2BE5AF5E0001F3F0 /* WorkoutExporter.app */;
 			productType = "com.apple.product-type.application";
@@ -233,6 +240,9 @@
 				Base,
 			);
 			mainGroup = EB38CF132BE5AF5E0001F3F0;
+			packageReferences = (
+				EB38CF502BE5FA800001F3F0 /* XCRemoteSwiftPackageReference "Zip" */,
+			);
 			productRefGroup = EB38CF1D2BE5AF5E0001F3F0 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -444,6 +454,8 @@
 				DEVELOPMENT_TEAM = Q5EPC6VTHL;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WorkoutExporter/Info.plist;
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Please allow the use of healthcare data to export workout records.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -475,6 +487,8 @@
 				DEVELOPMENT_TEAM = Q5EPC6VTHL;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WorkoutExporter/Info.plist;
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Please allow the use of healthcare data to export workout records.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -606,6 +620,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		EB38CF502BE5FA800001F3F0 /* XCRemoteSwiftPackageReference "Zip" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/marmelroy/Zip.git";
+			requirement = {
+				kind = upToNextMinorVersion;
+				minimumVersion = 2.1.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		EBA9C2AB2BE5FB1900CF60B4 /* Zip */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EB38CF502BE5FA800001F3F0 /* XCRemoteSwiftPackageReference "Zip" */;
+			productName = Zip;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = EB38CF142BE5AF5E0001F3F0 /* Project object */;
 }

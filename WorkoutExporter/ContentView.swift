@@ -16,11 +16,15 @@ struct ContentView: View {
                 .imageScale(.large)
                 .foregroundStyle(.tint)
             Text("Hello, world!")
+            Button("Export Workouts") {
+                workoutManager.exportAndShareWorkout()
+            }
+            .padding()
+            .background(Color.blue)
+            .foregroundColor(.white)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
         }
         .padding()
-        .onAppear {
-            workoutManager.fetchSwimmingWorkouts()
-        }
     }
 }
 
