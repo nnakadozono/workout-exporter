@@ -84,13 +84,26 @@ class WorkoutManager: ObservableObject {
             for workout in workouts.prefix(1) {
                 print("\(workout.workoutActivityType), \(workout.duration),                       \(workout.sourceRevision), \(String(describing: workout.device)), \(String(describing: workout.device?.name)), \(String(describing: workout.device?.hardwareVersion)), \(workout.startDate), \(workout.endDate), \n\n \(String(describing: workout.metadata)), \n\n \(workout.allStatistics)")
                 print("\n\n")
-                print("\(String(describing: workout.statistics(for: distanceSwimmingType)?.sumQuantity()?.doubleValue(for: .meter()) ?? 0))")
-                print("\(String(describing: workout.statistics(for: swimmingStrokeCountType)?.sumQuantity()?.doubleValue(for: .count()) ?? 0))")
-                print("\(String(describing: workout.statistics(for: basalEnergyBurnedType)?.sumQuantity()?.doubleValue(for: .kilocalorie()) ?? 0))")
-                print("\(String(describing: workout.statistics(for: activeEnergyBurnedType)?.sumQuantity()?.doubleValue(for: .kilocalorie()) ?? 0))")
-                print("\(String(describing: workout.statistics(for: heartRateType)?.averageQuantity()?.doubleValue(for: HKUnit(from: "count/min")) ?? 0))")
-                print("\(String(describing: workout.statistics(for: heartRateType)?.minimumQuantity()?.doubleValue(for: HKUnit(from: "count/min")) ?? 0))")
-                print("\(String(describing: workout.statistics(for: heartRateType)?.maximumQuantity()?.doubleValue(for: HKUnit(from: "count/min")) ?? 0))")
+                print("\(String(describing: workout.workoutEvents))")
+                
+                guard let workoutEvents = workout.workoutEvents else {
+                    print("No events available for this workout")
+                    continue
+                }
+                for event in workoutEvents {
+                    switch event.type {
+                    case .lap:
+                        print("lap")
+                        print("\(event.dateInterval.start), \(event.dateInterval.end), \(event.dateInterval.duration), \(String(describing: event.metadata))")
+                    case .segment:
+                        print("segment")
+                        print("\(event.dateInterval.start), \(event.dateInterval.end), \(event.dateInterval.duration), \(String(describing: event.metadata))")
+                    default:
+                        print("default")
+                        print("\(event.dateInterval.start), \(event.dateInterval.end), \(event.dateInterval.duration), \(String(describing: event.metadata))")
+                    }
+                }
+
             }
             
             let jsonData = self.convertToJsonData(workouts)
@@ -116,7 +129,10 @@ class WorkoutManager: ObservableObject {
         dateFormatter.timeZone = TimeZone.current
         
         var summaryArray = [Any]()
+        var eventSegmentArray = [Any]()
+        var eventLapArray = [Any]()
         for workout in workouts.prefix(3) {
+            // workout for workoutSummary
             var workoutData = [String: Any]()
             
             workoutData["workoutActivityType"] = workout.workoutActivityType.rawValue
@@ -148,8 +164,66 @@ class WorkoutManager: ObservableObject {
                 }
             }
             summaryArray.append(workoutData)
+            
+            
+            // workoutEvents for eventSegment and eventLap
+            guard let workoutEvents = workout.workoutEvents else {
+                print("No events available for this workout")
+                continue
+            }
+            for event in workoutEvents {
+                var eventData = [String: Any]()
+                switch event.type {
+                case .segment:
+                    print("segment")
+                    print("\(event.dateInterval.start), \(event.dateInterval.end), \(event.dateInterval.duration), \(String(describing: event.metadata))")
+                    
+                    eventData["start"] = dateFormatter.string(from: event.dateInterval.start)
+                    eventData["end"] = dateFormatter.string(from: event.dateInterval.end)
+                    eventData["duration"] = event.dateInterval.duration
+                    if let eventMetadata = event.metadata {
+                        for (key, value) in eventMetadata {
+                            if let dateValue = value as? Date {
+                                eventData[key] = dateFormatter.string(from: dateValue)
+                            } else if let numberValue = value as? NSNumber {
+                                eventData[key] = numberValue
+                            } else if let stringValue = value as? String {
+                                eventData[key] = stringValue
+                            } else {
+                                print("Unsupported type for key \(key): \(type(of: value))")
+                            }
+                        }
+                    }
+                    eventSegmentArray.append(eventData)
+                case .lap:
+                    print("lap")
+                    print("\(event.dateInterval.start), \(event.dateInterval.end), \(event.dateInterval.duration), \(String(describing: event.metadata))")
+                    eventData["start"] = dateFormatter.string(from: event.dateInterval.start)
+                    eventData["end"] = dateFormatter.string(from: event.dateInterval.end)
+                    eventData["duration"] = event.dateInterval.duration
+                    if let eventMetadata = event.metadata {
+                        for (key, value) in eventMetadata {
+                            if let dateValue = value as? Date {
+                                eventData[key] = dateFormatter.string(from: dateValue)
+                            } else if let numberValue = value as? NSNumber {
+                                eventData[key] = numberValue
+                            } else if let stringValue = value as? String {
+                                eventData[key] = stringValue
+                            } else {
+                                print("Unsupported type for key \(key): \(type(of: value))")
+                            }
+                        }
+                    }
+                    eventLapArray.append(eventData)
+                default:
+                    print("default")
+                    print("\(event.dateInterval.start), \(event.dateInterval.end), \(event.dateInterval.duration), \(String(describing: event.metadata))")
+                }
+            }
         }
         jsonObject["workoutSummary"] = summaryArray
+        jsonObject["workoutEventSegment"] = eventSegmentArray
+        jsonObject["workoutEventLap"] = eventLapArray
         
         do {
             let data = try JSONSerialization.data(withJSONObject: jsonObject, options:[JSONSerialization.WritingOptions.prettyPrinted])
