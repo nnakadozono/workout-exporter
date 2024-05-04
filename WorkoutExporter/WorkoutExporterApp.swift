@@ -114,6 +114,68 @@ class WorkoutManager: ObservableObject {
         self.healthStore.execute(query)
     }
     
+    func fetchData(for sampleType: HKQuantityType, completion: @escaping ([HKQuantitySample]?) -> Void)
+    {
+        let predicate = HKQuery.predicateForSamples(withStart: nil, end: nil, options: .strictStartDate)
+        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
+        
+        let query = HKSampleQuery(sampleType: sampleType, predicate: predicate, limit: 100, sortDescriptors: [sortDescriptor] ) {
+            (query, samples, error) in
+            if let samples = samples as? [HKQuantitySample] {
+                completion(samples)
+            } else {
+                completion(nil)
+            }
+        }
+        self.healthStore.execute(query)
+    }
+
+    func fetchLapData(completion: @escaping (String) -> Void) {
+        guard let distanceSwimmingType = HKObjectType.quantityType(forIdentifier: .distanceSwimming),
+              let swimmingStrokeCountType = HKObjectType.quantityType(forIdentifier: .swimmingStrokeCount),
+              let basalEnergyBurnedType = HKObjectType.quantityType(forIdentifier: .basalEnergyBurned),
+              let activeEnergyBurnedType = HKObjectType.quantityType(forIdentifier: .activeEnergyBurned),
+              let heartRateType = HKObjectType.quantityType(forIdentifier: .heartRate) else {
+            completion("")
+            return
+        }
+
+        var lapData = [String: [HKQuantitySample]]()
+        let dispatchGroup = DispatchGroup()
+        
+        dispatchGroup.enter()
+        fetchData(for: distanceSwimmingType) {samples in
+            if let samples = samples {
+                print("\(distanceSwimmingType): \(String(describing: samples.first?.startDate)), \(String(describing: samples.first?.endDate)), \(String(describing: samples.first?.quantity.doubleValue(for: .meter())))")
+                lapData["distanceSwimming"] = samples
+            }
+            dispatchGroup.leave()
+        }
+
+        dispatchGroup.enter()
+        fetchData(for: swimmingStrokeCountType) {samples in
+            if let samples = samples {
+                print("\(distanceSwimmingType): \(String(describing: samples.first?.startDate)), \(String(describing: samples.first?.endDate)), \(String(describing: samples.first?.quantity.doubleValue(for: .count())))")
+                lapData["swimmingStrokeCount"] = samples
+            }
+            dispatchGroup.leave()
+        }
+
+        dispatchGroup.enter()
+        fetchData(for: heartRateType) {samples in
+            if let samples = samples {
+                print("\(heartRateType): \(String(describing: samples.first?.startDate)), \(String(describing: samples.first?.endDate)), \(String(describing: samples.first?.quantity.doubleValue(for: HKUnit(from: "count/min"))))")
+                lapData["heartRate"] = samples
+            }
+            dispatchGroup.leave()
+        }
+//        completion("")
+        dispatchGroup.notify(queue: .main) {
+            let jsonData = self.convertToJsonDataForLap(lapData)
+            completion(jsonData)
+        }
+    }
+    
     private func convertToJsonData(_ workouts: [HKWorkout]) -> String {
         var jsonObject = [String: Any]()
 
@@ -234,8 +296,70 @@ class WorkoutManager: ObservableObject {
         }
     }
     
+    private func convertToJsonDataForLap(_ lapData: [String: [HKQuantitySample]]) -> String {
+        var jsonObject = [String: Any]()
+
+        guard let distanceSwimmingType = HKObjectType.quantityType(forIdentifier: .distanceSwimming),
+              let swimmingStrokeCountType = HKObjectType.quantityType(forIdentifier: .swimmingStrokeCount),
+              let basalEnergyBurnedType = HKObjectType.quantityType(forIdentifier: .basalEnergyBurned),
+              let activeEnergyBurnedType = HKObjectType.quantityType(forIdentifier: .activeEnergyBurned),
+              let heartRateType = HKObjectType.quantityType(forIdentifier: .heartRate) else {
+            fatalError("QuantityType(s) are unavailable.")
+        }
+        
+        let dateFormatter = ISO8601DateFormatter()
+        dateFormatter.timeZone = TimeZone.current
+
+        var distanceSwimmingArray = [Any]()
+        if let samples = lapData["distanceSwimming"] {
+            for sample in samples {
+                print("distanceSwimming: \(String(describing: sample.startDate)), \(String(describing: sample.endDate)), \(String(describing: sample.quantity.doubleValue(for: .meter())))")
+                var sampleData = [String: Any]()
+                sampleData["startDate"] = dateFormatter.string(from: sample.startDate)
+                sampleData["endDate"] = dateFormatter.string(from: sample.endDate)
+                sampleData["value"] = sample.quantity.doubleValue(for: .meter())
+                distanceSwimmingArray.append(sampleData)
+            }
+        }
+        jsonObject["distanceSwimming"] = distanceSwimmingArray
+                    
+        var swimmingStrokeCountArray = [Any]()
+        if let samples = lapData["swimmingStrokeCount"] {
+            for sample in samples {
+                var sampleData = [String: Any]()
+                sampleData["startDate"] = dateFormatter.string(from: sample.startDate)
+                sampleData["endDate"] = dateFormatter.string(from: sample.endDate)
+                sampleData["value"] = sample.quantity.doubleValue(for: .count())
+                swimmingStrokeCountArray.append(sampleData)
+            }
+        }
+        jsonObject["swimmingStrokeCount"] = swimmingStrokeCountArray
+        
+
+        var heartRateArray = [Any]()
+        if let samples = lapData["heartRate"] {
+            for sample in samples {
+                var sampleData = [String: Any]()
+                sampleData["startDate"] = dateFormatter.string(from: sample.startDate)
+                sampleData["endDate"] = dateFormatter.string(from: sample.endDate)
+                sampleData["value"] = sample.quantity.doubleValue(for: HKUnit(from: "count/min"))
+                heartRateArray.append(sampleData)
+            }
+        }
+        jsonObject["heartRate"] = heartRateArray
+
+        do {
+            let data = try JSONSerialization.data(withJSONObject: jsonObject, options:[JSONSerialization.WritingOptions.prettyPrinted])
+            return String(data: data, encoding: .utf8) ?? ""
+        } catch {
+            print("Failed to convert to JSON")
+            return ""
+        }
+    }
+    
     func exportAndShareWorkout() {
-        fetchSwimmingWorkouts { jsonData in
+        //fetchSwimmingWorkouts { jsonData in
+        fetchLapData { jsonData in
             guard !jsonData.isEmpty else { return }
             
             let fileManager = FileManager.default
