@@ -51,6 +51,7 @@
 		EB38CF4B2BE5B9F20001F3F0 /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
 		EB38CF4D2BE5B9FB0001F3F0 /* HealthKitUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKitUI.framework; path = System/Library/Frameworks/HealthKitUI.framework; sourceTree = SDKROOT; };
 		EBA9C2AD2BE6081200CF60B4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		EBA9C2AE2BE7A16F00CF60B4 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,6 +85,7 @@
 		EB38CF132BE5AF5E0001F3F0 = {
 			isa = PBXGroup;
 			children = (
+				EBA9C2AE2BE7A16F00CF60B4 /* README.md */,
 				EB38CF1E2BE5AF5E0001F3F0 /* WorkoutExporter */,
 				EB38CF2F2BE5AF600001F3F0 /* WorkoutExporterTests */,
 				EB38CF392BE5AF600001F3F0 /* WorkoutExporterUITests */,
