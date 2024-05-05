@@ -58,12 +58,42 @@ class WorkoutManager: ObservableObject {
         self.healthStore = healthStore
     }
 
-    func fetchSwimmingWorkouts(completion: @escaping ([HKWorkout]?) -> Void){
-        let workoutPredicate = HKQuery.predicateForWorkouts(with: .swimming)
+    func dateRange(forPeriod period: String) -> (startDate: Date, endDate: Date)? {
+        let calendar = Calendar.current
+        let now = Date()
+        
+        switch period {
+        case "Past Two Weeks":
+            let startDate = calendar.date(byAdding: .day, value: -13, to: now)!
+            return (startDate, now)
+        case "This Year":
+            let startDate = calendar.date(from: calendar.dateComponents([.year], from: now))!
+            return (startDate, now)
+        case "Last and This Year":
+            let startOfThisYear = calendar.date(from: calendar.dateComponents([.year], from: now))!
+            let startOfLastYear = calendar.date(byAdding: .year, value: -1, to: startOfThisYear)!
+            return (startOfLastYear, now)
+        case "All Time":
+            return (Date.distantPast, Date.distantFuture)
+        default:
+            return nil
+        }
+        
+    }
+    
+    func fetchSwimmingWorkouts(forPeriod period: String, completion: @escaping ([HKWorkout]?) -> Void){
+        guard let range = dateRange(forPeriod: period) else {
+            completion(nil)
+            return
+        }
+        let datePredicate = HKQuery.predicateForSamples(withStart: range.startDate, end: range.endDate, options: .strictStartDate)
+        let workoutTypePredicate = HKQuery.predicateForWorkouts(with: .swimming)
+        let workoutPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [datePredicate, workoutTypePredicate])
+       
         let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
         
-//        let query = HKSampleQuery(sampleType: .workoutType(), predicate: workoutPredicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) {
-        let query = HKSampleQuery(sampleType: .workoutType(), predicate: workoutPredicate, limit: 3, sortDescriptors: [sortDescriptor]) { // Debug
+        let query = HKSampleQuery(sampleType: .workoutType(), predicate: workoutPredicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) {
+//        let query = HKSampleQuery(sampleType: .workoutType(), predicate: workoutPredicate, limit: 3, sortDescriptors: [sortDescriptor]) { // Debug
 
             (query, samples, error) in
             guard let workouts = samples as? [HKWorkout], error == nil else {
@@ -115,12 +145,19 @@ class WorkoutManager: ObservableObject {
         self.healthStore.execute(query)
     }
     
-    func fetchData(for sampleType: HKQuantityType, completion: @escaping ([HKQuantitySample]?) -> Void)
+    
+    
+    
+    func fetchData(for sampleType: HKQuantityType, forPeriod period: String, completion: @escaping ([HKQuantitySample]?) -> Void)
     {
-        let predicate = HKQuery.predicateForSamples(withStart: nil, end: nil, options: .strictStartDate)
+        guard let range = dateRange(forPeriod: period) else {
+            completion(nil)
+            return
+        }
+        let predicate = HKQuery.predicateForSamples(withStart: range.startDate, end: range.endDate, options: .strictStartDate)
         let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
         
-        let query = HKSampleQuery(sampleType: sampleType, predicate: predicate, limit: 100, sortDescriptors: [sortDescriptor] ) {
+        let query = HKSampleQuery(sampleType: sampleType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor] ) {
             (query, samples, error) in
             if let samples = samples as? [HKQuantitySample] {
                 completion(samples)
@@ -131,7 +168,7 @@ class WorkoutManager: ObservableObject {
         self.healthStore.execute(query)
     }
 
-    func fetchLapData(completion: @escaping (String) -> Void) {
+    func fetchLapData(forPeriod period: String, completion: @escaping (String) -> Void) {
         guard let distanceSwimmingType = HKObjectType.quantityType(forIdentifier: .distanceSwimming),
               let swimmingStrokeCountType = HKObjectType.quantityType(forIdentifier: .swimmingStrokeCount),
 //              let basalEnergyBurnedType = HKObjectType.quantityType(forIdentifier: .basalEnergyBurned),
@@ -146,14 +183,14 @@ class WorkoutManager: ObservableObject {
 //        var lapData = [String: [HKQuantitySample]]()
         var lapData = [String: [Any]]()
         
-        fetchSwimmingWorkouts { workouts in
+        fetchSwimmingWorkouts(forPeriod: period) { workouts in
             if let workouts: [HKWorkout] = workouts {
                 lapData["workouts"] = workouts
             }
         }
         
         dispatchGroup.enter()
-        fetchData(for: distanceSwimmingType) {samples in
+        fetchData(for: distanceSwimmingType, forPeriod: period) {samples in
             if let samples = samples {
 //                print("\(distanceSwimmingType): \(String(describing: samples.first?.startDate)), \(String(describing: samples.first?.endDate)), \(String(describing: samples.first?.quantity.doubleValue(for: .meter())))")
                 lapData["distanceSwimming"] = samples
@@ -162,7 +199,7 @@ class WorkoutManager: ObservableObject {
         }
 
         dispatchGroup.enter()
-        fetchData(for: swimmingStrokeCountType) {samples in
+        fetchData(for: swimmingStrokeCountType, forPeriod: period) {samples in
             if let samples = samples {
 //                print("\(distanceSwimmingType): \(String(describing: samples.first?.startDate)), \(String(describing: samples.first?.endDate)), \(String(describing: samples.first?.quantity.doubleValue(for: .count())))")
                 lapData["swimmingStrokeCount"] = samples
@@ -171,7 +208,7 @@ class WorkoutManager: ObservableObject {
         }
 
         dispatchGroup.enter()
-        fetchData(for: heartRateType) {samples in
+        fetchData(for: heartRateType, forPeriod: period) {samples in
             if let samples = samples {
 //                print("\(heartRateType): \(String(describing: samples.first?.startDate)), \(String(describing: samples.first?.endDate)), \(String(describing: samples.first?.quantity.doubleValue(for: HKUnit(from: "count/min"))))")
                 lapData["heartRate"] = samples
@@ -203,7 +240,7 @@ class WorkoutManager: ObservableObject {
             var summaryArray = [Any]()
             var eventSegmentArray = [Any]()
             var eventLapArray = [Any]()
-            for workout in workouts.prefix(3) {
+            for workout in workouts {
                 // workout for workoutSummary
                 var workoutData = [String: Any]()
                 
@@ -361,9 +398,9 @@ class WorkoutManager: ObservableObject {
         }
     }
         
-    func exportAndShareWorkout() {
+    func exportAndShareWorkout(for period: String) {
         //fetchSwimmingWorkouts { jsonData in
-        fetchLapData { jsonData in
+        fetchLapData(forPeriod: period) { jsonData in
             guard !jsonData.isEmpty else { return }
             
             let fileManager = FileManager.default
